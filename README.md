@@ -229,8 +229,12 @@ psql -U beag_user beag_db < backup.sql
 1. Create a PostgreSQL database in Render dashboard
 2. Copy the External Database URL
 3. Add as `DATABASE_URL` environment variable
-4. Deploy your backend
-5. Tables are created automatically
+4. Set the **Start Command** to:
+   ```
+   alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+   ```
+5. Deploy your backend
+6. Tables are created automatically, background worker starts with the API
 
 #### Heroku
 1. Add Heroku Postgres addon
@@ -244,6 +248,24 @@ psql -U beag_user beag_db < backup.sql
 3. Configure security groups/firewall
 4. Set `DATABASE_URL` in your deployment
 5. Tables are created when backend starts
+
+### Start Commands for Production
+
+**Most platforms (Render, Railway, Heroku):**
+```bash
+alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+```
+
+**Docker containers:**
+```bash
+alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000
+```
+
+**Notes:**
+- The command runs database migrations first (`alembic upgrade head`)
+- Then starts the FastAPI server with built-in background worker
+- Background worker automatically syncs subscriptions every `SYNC_INTERVAL_HOURS`
+- Use `$PORT` for platforms that set the port automatically
 
 ### Environment Variables for Production
 
