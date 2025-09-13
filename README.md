@@ -51,7 +51,24 @@ cp .env.example .env
 # BEAG_API_KEY=your_actual_api_key_here
 ```
 
-### 4. Run the backend
+### 4. Set up database
+
+```bash
+./setup-database.sh
+```
+
+This will:
+- Create PostgreSQL user and database
+- Provide you with the correct DATABASE_URL
+- Guide you through database configuration
+
+When prompted, you can:
+- Press Enter to use defaults (database: `beag_db`, user: `beag_user`, password: `beag_password`)
+- Or enter custom values to match your `.env` file
+
+After setup, copy the generated DATABASE_URL to your `.env` file.
+
+### 5. Run the backend
 
 ```bash
 ./start.sh
@@ -61,7 +78,6 @@ This will automatically:
 - Check PostgreSQL installation
 - Create virtual environment
 - Install Python dependencies
-- Create database and user (if needed)
 - Run database migrations
 - Start the API server with background worker
 
@@ -82,12 +98,12 @@ source venv/bin/activate
 # Install dependencies
 pip install -r requirements.txt
 
-# Set up database (if not using automatic setup)
-./setup-database.sh
-
 # Copy and configure environment
 cp .env.example .env
 # Edit .env with your settings
+
+# Set up database
+./setup-database.sh
 
 # Run migrations
 alembic upgrade head
