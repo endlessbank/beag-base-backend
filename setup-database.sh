@@ -52,7 +52,7 @@ if [ $? -eq 0 ]; then
     echo "✅ Database created successfully!"
     echo ""
     echo "Your DATABASE_URL is:"
-    echo "postgresql://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME"
+    echo "postgresql+pg8000://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME"
     echo ""
     echo "Add this to your backend/.env file"
 else

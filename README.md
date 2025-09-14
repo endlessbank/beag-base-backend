@@ -170,8 +170,8 @@ All configuration is done via environment variables in `.env`:
 BEAG_API_KEY=your_beag_api_key_here
 BEAG_API_URL=https://my-saas-basic-api-d5e3hpgdf0gnh2em.eastus-01.azurewebsites.net/api/v1/saas
 
-# Database (Auto-created for local dev)
-DATABASE_URL=postgresql://beag_user:beag_password@localhost:5432/beag_db
+# Database (Auto-created for local dev, using pg8000 for Python 3.13+ compatibility)
+DATABASE_URL=postgresql+pg8000://beag_user:beag_password@localhost:5432/beag_db
 
 # CORS Configuration
 FRONTEND_URL=http://localhost:3000
@@ -186,6 +186,8 @@ SYNC_INTERVAL_HOURS=6  # How often to sync subscriptions
 ```
 
 ## Database Management
+
+**Database Driver**: This backend uses `pg8000` (pure Python PostgreSQL driver) instead of `psycopg2` for better Python 3.13+ compatibility and deployment reliability.
 
 ### Running migrations
 ```bash
