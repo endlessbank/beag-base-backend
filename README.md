@@ -233,8 +233,11 @@ psql -U beag_user beag_db < backup.sql
    ```
    alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
    ```
-5. Deploy your backend
-6. Tables are created automatically, background worker starts with the API
+5. **Important**: Set Python version to 3.11 in environment variables
+6. Deploy your backend
+7. Tables are created automatically, background worker starts with the API
+
+**Note**: A `render.yaml` configuration file is included for easy deployment
 
 #### Heroku
 1. Add Heroku Postgres addon
