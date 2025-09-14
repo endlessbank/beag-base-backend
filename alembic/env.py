@@ -9,7 +9,7 @@ from pathlib import Path
 # Add parent directory to Python path
 sys.path.append(str(Path(__file__).parent.parent))
 
-from app.database import Base
+from app.database import Base, get_pg8000_database_url
 from app.models import user, sync_log
 from app.config import settings
 
@@ -17,8 +17,9 @@ from app.config import settings
 # access to the values within the .ini file in use.
 config = context.config
 
-# Set the database URL from environment
-config.set_main_option("sqlalchemy.url", settings.database_url)
+# Set the database URL from environment with pg8000 driver transformation
+database_url = get_pg8000_database_url(settings.database_url)
+config.set_main_option("sqlalchemy.url", database_url)
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
