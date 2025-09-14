@@ -231,9 +231,11 @@ psql -U beag_user beag_db < backup.sql
 1. Create a PostgreSQL database in Render dashboard
 2. Copy the **Internal Database URL** (or External Database URL)
 3. Add as `DATABASE_URL` environment variable (standard `postgresql://` format works)
-4. **Important: Force Python 3.11** to avoid Python 3.13 compatibility issues:
-   - Set environment variable: `PYTHON_VERSION=3.11.9`
-   - The `.python-version` file in the repo will also help Render detect the correct version
+4. **Set required environment variables**:
+   - `PYTHON_VERSION=3.11.9` (avoid Python 3.13 compatibility issues)
+   - `ENVIRONMENT=production` (marks deployment as production for logs and health checks)
+   - `BEAG_API_KEY=your_actual_api_key`
+   - The `.python-version` file in the repo will also help Render detect the correct Python version
 5. Set the **Start Command** to:
    ```
    alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
@@ -280,7 +282,7 @@ DATABASE_URL=postgresql://user:pass@host:port/dbname  # From your platform
 # Update these for production
 FRONTEND_URL=https://yourapp.com
 ADMIN_URL=https://admin.yourapp.com
-ENVIRONMENT=production
+ENVIRONMENT=production  # Important: Use "production" for production deployments, "development" for local dev
 
 # Optional
 PORT=8000  # Some platforms set this automatically
@@ -292,10 +294,22 @@ SYNC_INTERVAL_HOURS=6
 - [ ] Database created through platform UI
 - [ ] `DATABASE_URL` environment variable set
 - [ ] `BEAG_API_KEY` environment variable set
+- [ ] `ENVIRONMENT=production` environment variable set
 - [ ] CORS origins updated for production URLs
 - [ ] HTTPS enabled
 - [ ] Monitoring/logging configured
 - [ ] Backup strategy in place
+
+### Environment Variable Guide
+
+The `ENVIRONMENT` variable affects:
+- **Startup logs**: Shows "production mode" vs "development mode"
+- **Health endpoint**: `/health` returns correct environment in response
+- **Monitoring**: Helps identify which environment you're debugging
+
+**Values:**
+- `development` - For local development
+- `production` - For production deployments (Render, Railway, Heroku, etc.)
 
 ## Development Tips
 
