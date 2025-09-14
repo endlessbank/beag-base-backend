@@ -2,6 +2,7 @@ services:
   - type: web
     name: beag-backend
     runtime: python
+    pythonVersion: "3.11"
     buildCommand: "pip install --upgrade pip && pip install -r requirements.txt"
     startCommand: "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     envVars:
