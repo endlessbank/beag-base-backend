@@ -231,15 +231,17 @@ psql -U beag_user beag_db < backup.sql
 1. Create a PostgreSQL database in Render dashboard
 2. Copy the **Internal Database URL** (or External Database URL)
 3. Add as `DATABASE_URL` environment variable (standard `postgresql://` format works)
-4. Set the **Start Command** to:
+4. **Important: Force Python 3.11** to avoid Python 3.13 compatibility issues:
+   - Set environment variable: `PYTHON_VERSION=3.11.9`
+   - The `.python-version` file in the repo will also help Render detect the correct version
+5. Set the **Start Command** to:
    ```
    alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
    ```
-5. **Important**: Set Python version to 3.11 in environment variables
 6. Deploy your backend
 7. Tables are created automatically, background worker starts with the API
 
-**Note**: The backend automatically converts `postgresql://` URLs to use the pg8000 driver for Python 3.13+ compatibility. A `render.yaml` configuration file is also included for easy deployment.
+**Note**: The backend uses pg8000 (pure Python driver) for maximum compatibility and automatically converts standard `postgresql://` URLs. If Render still uses Python 3.13 despite version settings, you may need to upgrade to Pydantic v2 (see troubleshooting section).
 
 #### Heroku
 1. Add Heroku Postgres addon
@@ -261,10 +263,6 @@ psql -U beag_user beag_db < backup.sql
 alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
 ```
 
-**Docker containers:**
-```bash
-alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000
-```
 
 **Notes:**
 - The command runs database migrations first (`alembic upgrade head`)
@@ -330,6 +328,20 @@ psql -U beag_user -d beag_db -c "SELECT * FROM sync_logs ORDER BY created_at DES
 - Check BEAG_API_KEY is valid
 - Look for errors in console output
 - Verify network connectivity
+
+**Python 3.13 compatibility errors (Render):**
+- Error: `TypeError: ForwardRef._evaluate() missing 1 required keyword-only argument: 'recursive_guard'`
+- **Solution 1**: Set `PYTHON_VERSION=3.11.9` environment variable in Render dashboard
+- **Solution 2**: If Render ignores version settings, upgrade to Pydantic v2:
+  ```bash
+  # Update requirements.txt
+  pydantic>=2.5.0
+  pydantic-settings>=2.0.0
+  
+  # Update code (see Pydantic v2 migration guide)
+  # app/config.py: from pydantic_settings import BaseSettings
+  # app/schemas/user.py: orm_mode = True → from_attributes = True
+  ```
 
 ## License
 
