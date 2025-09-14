@@ -43,36 +43,50 @@ if grep -q "BEAG_API_KEY=your_beag_api_key_here" .env || ! grep -q "BEAG_API_KEY
     exit 1
 fi
 
-# Database configuration
-DB_HOST="localhost"
-DB_PORT="5432"
-DB_NAME="beag_db"
-DB_USER="beag_user"
-DB_PASSWORD="beag_password"
-
-# Check if database exists, create if it doesn't
-echo "🗄️  Checking database..."
-if ! PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c '\q' 2>/dev/null; then
-    echo "📦 Database not found. Creating database..."
-    
-    # Try to create user and database
-    psql -h $DB_HOST -p $DB_PORT -U postgres <<EOF 2>/dev/null
-CREATE USER $DB_USER WITH PASSWORD '$DB_PASSWORD';
-CREATE DATABASE $DB_NAME OWNER $DB_USER;
-GRANT ALL PRIVILEGES ON DATABASE $DB_NAME TO $DB_USER;
-EOF
-
-    if [ $? -eq 0 ]; then
-        echo "✅ Database created successfully!"
-    else
-        echo "⚠️  Could not create database automatically."
-        echo "Please run ./setup-database.sh first or create the database manually."
-        echo ""
-        echo "Expected DATABASE_URL:"
-        echo "postgresql://$DB_USER:$DB_PASSWORD@$DB_HOST:$DB_PORT/$DB_NAME"
-        exit 1
-    fi
+# Parse database configuration from DATABASE_URL in .env
+if ! grep -q "^DATABASE_URL=" .env; then
+    echo "❌ DATABASE_URL not found in .env file!"
+    echo ""
+    echo "Please run ./setup-database.sh first to create your database."
+    exit 1
 fi
+
+# Extract DATABASE_URL
+DATABASE_URL=$(grep "^DATABASE_URL=" .env | cut -d'=' -f2-)
+
+# Parse DATABASE_URL to extract connection details
+# Format: postgresql+pg8000://user:password@host:port/database
+if [[ $DATABASE_URL =~ postgresql\+?[^:]*://([^:]+):([^@]+)@([^:]+):([0-9]+)/(.+) ]]; then
+    DB_USER="${BASH_REMATCH[1]}"
+    DB_PASSWORD="${BASH_REMATCH[2]}"
+    DB_HOST="${BASH_REMATCH[3]}"
+    DB_PORT="${BASH_REMATCH[4]}"
+    DB_NAME="${BASH_REMATCH[5]}"
+else
+    echo "❌ Invalid DATABASE_URL format in .env file!"
+    echo "Expected format: postgresql+pg8000://user:password@host:port/database"
+    echo "Current value: $DATABASE_URL"
+    exit 1
+fi
+
+# Check if database exists and is accessible
+echo "🗄️  Checking database connection..."
+echo "   Database: $DB_NAME"
+echo "   User: $DB_USER"
+if ! PGPASSWORD=$DB_PASSWORD psql -h $DB_HOST -p $DB_PORT -U $DB_USER -d $DB_NAME -c '\q' 2>/dev/null; then
+    echo "❌ Cannot connect to database!"
+    echo ""
+    echo "This might be because:"
+    echo "1. Database doesn't exist - run ./setup-database.sh to create it"
+    echo "2. PostgreSQL service isn't running - start it with 'brew services start postgresql@15'"
+    echo "3. Wrong credentials in DATABASE_URL"
+    echo ""
+    echo "Current DATABASE_URL:"
+    echo "$DATABASE_URL"
+    exit 1
+fi
+
+echo "✅ Database connection successful!"
 
 # Run migrations
 echo "🗄️  Running database migrations..."
