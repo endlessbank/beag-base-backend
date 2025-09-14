@@ -33,7 +33,7 @@ class User(UserBase):
     updated_at: Optional[datetime] = None
     
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 class UserInDB(User):
