@@ -170,8 +170,8 @@ All configuration is done via environment variables in `.env`:
 BEAG_API_KEY=your_beag_api_key_here
 BEAG_API_URL=https://my-saas-basic-api-d5e3hpgdf0gnh2em.eastus-01.azurewebsites.net/api/v1/saas
 
-# Database (Auto-created for local dev, using pg8000 for Python 3.13+ compatibility)
-DATABASE_URL=postgresql+pg8000://beag_user:beag_password@localhost:5432/beag_db
+# Database (Auto-created for local dev)
+DATABASE_URL=postgresql://beag_user:beag_password@localhost:5432/beag_db
 
 # CORS Configuration
 FRONTEND_URL=http://localhost:3000
@@ -186,8 +186,6 @@ SYNC_INTERVAL_HOURS=6  # How often to sync subscriptions
 ```
 
 ## Database Management
-
-**Database Driver**: This backend uses `pg8000` (pure Python PostgreSQL driver) instead of `psycopg2` for better Python 3.13+ compatibility and deployment reliability. The backend automatically converts standard `postgresql://` URLs to `postgresql+pg8000://` format, so you can use any standard PostgreSQL URL.
 
 ### Running migrations
 ```bash
@@ -229,21 +227,14 @@ psql -U beag_user beag_db < backup.sql
 
 #### Render
 1. Create a PostgreSQL database in Render dashboard
-2. Copy the **Internal Database URL** (or External Database URL)
-3. Add as `DATABASE_URL` environment variable (standard `postgresql://` format works)
-4. **Set required environment variables**:
-   - `PYTHON_VERSION=3.11.9` (avoid Python 3.13 compatibility issues)
-   - `ENVIRONMENT=production` (marks deployment as production for logs and health checks)
-   - `BEAG_API_KEY=your_actual_api_key`
-   - The `.python-version` file in the repo will also help Render detect the correct Python version
-5. Set the **Start Command** to:
+2. Copy the External Database URL
+3. Add as `DATABASE_URL` environment variable
+4. Set the **Start Command** to:
    ```
    alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
    ```
-6. Deploy your backend
-7. Tables are created automatically, background worker starts with the API
-
-**Note**: The backend uses pg8000 (pure Python driver) for maximum compatibility and automatically converts standard `postgresql://` URLs. If Render still uses Python 3.13 despite version settings, you may need to upgrade to Pydantic v2 (see troubleshooting section).
+5. Deploy your backend
+6. Tables are created automatically, background worker starts with the API
 
 #### Heroku
 1. Add Heroku Postgres addon
@@ -258,20 +249,6 @@ psql -U beag_user beag_db < backup.sql
 4. Set `DATABASE_URL` in your deployment
 5. Tables are created when backend starts
 
-### Start Commands for Production
-
-**Most platforms (Render, Railway, Heroku):**
-```bash
-alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
-```
-
-
-**Notes:**
-- The command runs database migrations first (`alembic upgrade head`)
-- Then starts the FastAPI server with built-in background worker
-- Background worker automatically syncs subscriptions every `SYNC_INTERVAL_HOURS`
-- Use `$PORT` for platforms that set the port automatically
-
 ### Environment Variables for Production
 
 ```env
@@ -282,7 +259,7 @@ DATABASE_URL=postgresql://user:pass@host:port/dbname  # From your platform
 # Update these for production
 FRONTEND_URL=https://yourapp.com
 ADMIN_URL=https://admin.yourapp.com
-ENVIRONMENT=production  # Important: Use "production" for production deployments, "development" for local dev
+ENVIRONMENT=production
 
 # Optional
 PORT=8000  # Some platforms set this automatically
@@ -294,22 +271,10 @@ SYNC_INTERVAL_HOURS=6
 - [ ] Database created through platform UI
 - [ ] `DATABASE_URL` environment variable set
 - [ ] `BEAG_API_KEY` environment variable set
-- [ ] `ENVIRONMENT=production` environment variable set
 - [ ] CORS origins updated for production URLs
 - [ ] HTTPS enabled
 - [ ] Monitoring/logging configured
 - [ ] Backup strategy in place
-
-### Environment Variable Guide
-
-The `ENVIRONMENT` variable affects:
-- **Startup logs**: Shows "production mode" vs "development mode"
-- **Health endpoint**: `/health` returns correct environment in response
-- **Monitoring**: Helps identify which environment you're debugging
-
-**Values:**
-- `development` - For local development
-- `production` - For production deployments (Render, Railway, Heroku, etc.)
 
 ## Development Tips
 
@@ -342,20 +307,6 @@ psql -U beag_user -d beag_db -c "SELECT * FROM sync_logs ORDER BY created_at DES
 - Check BEAG_API_KEY is valid
 - Look for errors in console output
 - Verify network connectivity
-
-**Python 3.13 compatibility errors (Render):**
-- Error: `TypeError: ForwardRef._evaluate() missing 1 required keyword-only argument: 'recursive_guard'`
-- **Solution 1**: Set `PYTHON_VERSION=3.11.9` environment variable in Render dashboard
-- **Solution 2**: If Render ignores version settings, upgrade to Pydantic v2:
-  ```bash
-  # Update requirements.txt
-  pydantic>=2.5.0
-  pydantic-settings>=2.0.0
-  
-  # Update code (see Pydantic v2 migration guide)
-  # app/config.py: from pydantic_settings import BaseSettings
-  # app/schemas/user.py: orm_mode = True → from_attributes = True
-  ```
 
 ## License
 
