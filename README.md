@@ -57,16 +57,25 @@ cp .env.example .env
 ./setup-database.sh
 ```
 
-This will:
-- Create PostgreSQL user and database
-- Provide you with the correct DATABASE_URL
-- Guide you through database configuration
+**🎉 New User-Friendly Setup!**
+- ✅ **Auto-detects** your PostgreSQL user (no passwords on macOS!)
+- ✅ **Asks for your project name** to keep databases separate
+- ✅ **Creates everything automatically** with secure passwords
+- ✅ **Updates your .env file** - no manual copying needed!
 
-When prompted, you can:
-- Press Enter to use defaults (database: `beag_db`, user: `beag_user`, password: `beag_password`)
-- Or enter custom values to match your `.env` file
+**Example:**
+```
+Enter database name [beag_db]: my_saas_app
 
-After setup, copy the generated DATABASE_URL to your `.env` file.
+✅ Database created successfully!
+✅ Updated .env file with new DATABASE_URL
+
+Database: my_saas_app
+User:     my_saas_app_user
+Password: (auto-generated)
+```
+
+**Tip**: Use a unique database name for each project (e.g., `todo_app_db`, `blog_platform_db`)
 
 ### 5. Run the backend
 
