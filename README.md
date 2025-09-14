@@ -187,7 +187,7 @@ SYNC_INTERVAL_HOURS=6  # How often to sync subscriptions
 
 ## Database Management
 
-**Database Driver**: This backend uses `pg8000` (pure Python PostgreSQL driver) instead of `psycopg2` for better Python 3.13+ compatibility and deployment reliability.
+**Database Driver**: This backend uses `pg8000` (pure Python PostgreSQL driver) instead of `psycopg2` for better Python 3.13+ compatibility and deployment reliability. The backend automatically converts standard `postgresql://` URLs to `postgresql+pg8000://` format, so you can use any standard PostgreSQL URL.
 
 ### Running migrations
 ```bash
@@ -229,8 +229,8 @@ psql -U beag_user beag_db < backup.sql
 
 #### Render
 1. Create a PostgreSQL database in Render dashboard
-2. Copy the External Database URL
-3. Add as `DATABASE_URL` environment variable
+2. Copy the **Internal Database URL** (or External Database URL)
+3. Add as `DATABASE_URL` environment variable (standard `postgresql://` format works)
 4. Set the **Start Command** to:
    ```
    alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
@@ -239,7 +239,7 @@ psql -U beag_user beag_db < backup.sql
 6. Deploy your backend
 7. Tables are created automatically, background worker starts with the API
 
-**Note**: A `render.yaml` configuration file is included for easy deployment
+**Note**: The backend automatically converts `postgresql://` URLs to use the pg8000 driver for Python 3.13+ compatibility. A `render.yaml` configuration file is also included for easy deployment.
 
 #### Heroku
 1. Add Heroku Postgres addon
